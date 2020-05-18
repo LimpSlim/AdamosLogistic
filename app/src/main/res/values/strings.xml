@@ -1,0 +1,48 @@
+<resources>
+    <string name="app_name">AdamosLogistic</string>
+    <string-array name="WhoAreYou">
+        <item>Заказчик</item>
+        <item>Исполнитель</item>
+    </string-array>
+    <string-array name="AttributeForNewOrder"></string-array>
+    <string name="title_activity_main_menu">MainMenuActivity</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_user">Личный кабинет</string>
+    <string name="menu_orders">Заказы</string>
+    <string name="menu_chat">Чаты</string>
+    <string name="menu_settings">Настройки и помощь</string>
+    <string name="menu_contacts">Контакты</string>
+    <string name="menu_logout">Выйти</string>
+
+    <!--AddOrderFragment-->
+    <string name="instruction_text">Введите название заказа:</string>
+    <string name="add_order_edit_text_hint">Имя заказа</string>
+    <string name="add_order_button">Добавить заказ</string>
+    <string name="leave_add_order_screen_button">Назад</string>
+    <string name="status_adding_new_order">Добавление заказа…</string>
+    <string name="status_adding_failed">Ошибка при добавлении!</string>
+    <string name="status_adding_success">Заказ создан успешно!</string>
+    <string name="status_no_order_name">Введите название заказа!</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <string name="enter_button_text">Вход</string>
+    <string name="register_button_text">Регистрация</string>
+    <string name="enter_wo_login_button_text">Вход без\nлогина</string>
+    <string name="orders_menu_active">Только активные</string>
+    <string name="todo">TODO</string>
+    <string name="test_status">Активен</string>
+    <string name="test_order_name">Имя заказа</string>
+    <string name="test_time">14:88</string>
+    <string name="text_open_chat">Открыть чат</string>
+    <string name="text_full_info">Полная информация:</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="home_second">Home Second</string>
+</resources>
