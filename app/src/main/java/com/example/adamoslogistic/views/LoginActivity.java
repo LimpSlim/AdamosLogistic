@@ -75,8 +75,6 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         try {
-            progressBar.setVisibility(ProgressBar.VISIBLE);
-
             if (DB.GetCurrentUser().ID != -1)
                 eventHandler.sendEmptyMessage(0);
             else {

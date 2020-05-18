@@ -11,8 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.adamoslogistic.generic.Registry;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +21,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     private Integer layoutID;
 
-    private List<HashMap<String, String>> extracted_data;
+    private List<HashMap<String, String>> extracted_data = new ArrayList<>();
     private List<Pair<String, Integer>> columns;
 
     public RecyclerViewAdapter(@NonNull RecyclerViewAdapterParams params, OnItemListener on_item_listener) throws InterruptedException {
@@ -38,13 +36,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         @SuppressLint("Recycle") Cursor result = Registry.db.rawQuery(params.query, null);
         Registry.DB_Connections.release();
 
-        extracted_data = new ArrayList<>();
         final String[] ColumnNames = result.getColumnNames();
 
         if (result.moveToFirst()) {
             int index = 0;
             do {
-                extracted_data.add(new HashMap<String, String>());
+                extracted_data.add(new HashMap<>());
                 for (String column : ColumnNames) {
                     extracted_data.get(index).put(
                             column,
@@ -85,7 +82,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         OnItemListener onItemListener;
         Map<String, View> Controls = new HashMap<>();
-        public Map<String, String> Fields = new HashMap<>();
+        Map<String, String> Fields = new HashMap<>();
 
         ViewHolder(View view, OnItemListener onItemListener, @NonNull List<Pair<String, Integer>> params) {
             super(view);

@@ -56,11 +56,10 @@ public final class DB {
 
         for (Order order : orders) {
             for (OrderAttribute attribute : order.ATTRIBUTES) {
-                if (attribute.name.equals("time_created")) {
+                if (attribute.name.equals("time_created"))
                     order.time_created = format.parse(attribute.value);
-                } else if (attribute.name.equals("order_status")) {
+                else if (attribute.name.equals("order_status"))
                     order.status = attribute.description;
-                }
             }
             Registry.db.execSQL(
                     String.format(
@@ -72,6 +71,7 @@ public final class DB {
                     )
             );
         }
+
         Registry.DB_Connections.release();
     }
 }

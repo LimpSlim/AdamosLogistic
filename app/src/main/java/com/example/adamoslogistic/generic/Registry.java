@@ -14,8 +14,8 @@ import static android.content.Context.MODE_PRIVATE;
 
 public final class Registry {
 
-    public static SQLiteDatabase db;
-    public static final Semaphore DB_Connections = new Semaphore(1, true);
+    static SQLiteDatabase db;
+    static final Semaphore DB_Connections = new Semaphore(1, true);
 
     public static Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(JsonPlaceHolderAPI.HOST)
