@@ -8,6 +8,7 @@ public class Order {
     public String name;
     public Integer order_id;
     public Date time_created;
+    public String timeshort;
     public String status;
 
     public List<OrderAttribute> ATTRIBUTES = new ArrayList<>();

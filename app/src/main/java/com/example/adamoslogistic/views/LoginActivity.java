@@ -89,7 +89,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
             }
         } catch (InterruptedException e) {
-            eventHandler.sendEmptyMessage(3);
+            e.printStackTrace();
         }
     }
 

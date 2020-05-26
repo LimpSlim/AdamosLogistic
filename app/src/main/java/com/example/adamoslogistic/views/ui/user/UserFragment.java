@@ -18,7 +18,7 @@ public class UserFragment extends Fragment {
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_user, container, false);
 
-        TextView name = root.findViewById(R.id.name);
+        TextView name = root.findViewById(R.id.item_attributeName);
         TextView id = root.findViewById(R.id.id);
 
         try {
