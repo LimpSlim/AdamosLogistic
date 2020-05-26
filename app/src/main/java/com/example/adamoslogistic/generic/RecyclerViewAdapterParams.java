@@ -8,9 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class RecyclerViewAdapterParams {
-    public int layoutID;
+    public Integer layoutID;
     public String query;
-    public String db_name;
     public List<Pair<String, Integer>> params;
     public Context context;
 

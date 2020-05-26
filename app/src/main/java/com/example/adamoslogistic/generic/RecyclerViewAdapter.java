@@ -11,20 +11,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.adamoslogistic.generic.Registry;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder> {
-    private OnItemListener mOnItemListener;
+    protected OnItemListener mOnItemListener;
 
-    private Integer layoutID;
+    protected Integer layoutID;
 
-    private List<HashMap<String, String>> extracted_data;
-    private List<Pair<String, Integer>> columns;
+    public List<HashMap<String, String>> extracted_data = new ArrayList<>();
+    protected List<Pair<String, Integer>> columns;
 
     public RecyclerViewAdapter(@NonNull RecyclerViewAdapterParams params, OnItemListener on_item_listener) throws InterruptedException {
         this.mOnItemListener = on_item_listener;
@@ -38,13 +36,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         @SuppressLint("Recycle") Cursor result = Registry.db.rawQuery(params.query, null);
         Registry.DB_Connections.release();
 
-        extracted_data = new ArrayList<>();
         final String[] ColumnNames = result.getColumnNames();
 
         if (result.moveToFirst()) {
             int index = 0;
             do {
-                extracted_data.add(new HashMap<String, String>());
+                extracted_data.add(new HashMap<>());
                 for (String column : ColumnNames) {
                     extracted_data.get(index).put(
                             column,
@@ -72,6 +69,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         for (Map.Entry<String, String> pair : row.entrySet()) {
             holder.Fields.put(pair.getKey(), pair.getValue());
             if (holder.Controls.containsKey(pair.getKey())){
+                if (pair.getKey().equals("kostyl")) continue;
                 ((TextView) holder.Controls.get(pair.getKey())).setText(pair.getValue());
             }
         }
@@ -82,12 +80,12 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return extracted_data.size();
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    protected static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         OnItemListener onItemListener;
-        Map<String, View> Controls = new HashMap<>();
-        public Map<String, String> Fields = new HashMap<>();
+        public Map<String, View> Controls = new HashMap<>();
+        protected Map<String, String> Fields = new HashMap<>();
 
-        ViewHolder(View view, OnItemListener onItemListener, @NonNull List<Pair<String, Integer>> params) {
+        public ViewHolder(View view, OnItemListener onItemListener, @NonNull List<Pair<String, Integer>> params) {
             super(view);
             this.onItemListener = onItemListener;
             view.setOnClickListener(this);

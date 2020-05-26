@@ -25,6 +25,18 @@ public final class Registry {
     public static void InitDB(Context BaseContext) {
         Registry.db = BaseContext.openOrCreateDatabase("app.db", MODE_PRIVATE, null);
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS cur_user (name TEXT, api_key TEXT, id INTEGER)");
-        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS orders (name TEXT, time_created DATETIME, id INTEGER, status TEXT)");
+
+        Registry.db.execSQL("DROP TABLE settings");
+        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS settings (order_id INTEGER)");
+
+        Registry.db.execSQL("DROP TABLE orders");
+        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS orders (" +
+                "name TEXT, time_created DATETIME, id INTEGER, status TEXT, timeshort TEXT)");
+
+        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS attribute_orders (" +
+                "order_id INTEGER, name TEXT, value TEXT, description TEXT, attribute_description TEXT, type INTEGER)");
+
+        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS messages(" +
+                "order_id INTEGER, value TEXT, time TEXT, user_id INTEGER)");
     }
 }
