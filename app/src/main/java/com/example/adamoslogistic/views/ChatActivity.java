@@ -9,7 +9,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -30,7 +29,6 @@ import com.example.adamoslogistic.requests.MessageGetResponse;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -46,30 +44,41 @@ public class ChatActivity extends AppCompatActivity {
 
     private Handler eventHandler;
     private ChatAdapter ca;
-    private String lastMessage = "";
-
-    private ArrayList<Message> message = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        try {
+            recyclerView = findViewById(R.id.message_view);
+            ca = new ChatAdapter(this, DB.GetMessagesList());
+            recyclerView.setAdapter(ca);
+            recyclerView.setLayoutManager(
+                    new LinearLayoutManager(
+                            this
+                    ));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         try {
             user = DB.GetCurrentUser();
             ImageButton send = findViewById(R.id.Send);
             chatSendingWindow = findViewById(R.id.your_message);
-            recyclerView = findViewById(R.id.message_view);
 
             eventHandler = new Handler(msg -> {
                 switch (msg.what) {
                     case 0:
-                        Message message = new Message();
-                        message.time = new SimpleDateFormat("YYYY-MM-dd HH:mm").format(new Date());
-                        message.user_id = ChatActivity.this.user.ID;
-                        message.value = lastMessage;
-                        ca.messages.add(message);
-                        ca.notifyDataSetChanged();
+                        try {
+                            ca = new ChatAdapter(this, DB.GetMessagesList());
+                            recyclerView.setAdapter(ca);
+                            recyclerView.setLayoutManager(
+                                    new LinearLayoutManager(
+                                            this
+                                    ));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         break;
                     case 1:
                         Toast.makeText(this, "Ошибка сервера", Toast.LENGTH_LONG)
@@ -87,25 +96,29 @@ public class ChatActivity extends AppCompatActivity {
             mTimer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    ca.notifyDataSetChanged();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ca.notifyDataSetChanged();
+                        }
+                    });
                     new MessageGetAsync().execute();
                 }
             }, 0, 5000);
 
-            ca = new ChatAdapter(this, DB.GetMessagesList());
-
-            recyclerView.setAdapter(ca);
-            recyclerView.setLayoutManager(
-                    new LinearLayoutManager(
-                            this
-                    ));
-
             send.setOnClickListener(v -> {
                 MessageAddRequest mar = new MessageAddRequest();
-                mar.value = lastMessage = chatSendingWindow.getText().toString();
+                Message message = new Message();
+                mar.value = message.value = chatSendingWindow.getText().toString();
+                chatSendingWindow.setText("");
+                message.time = new SimpleDateFormat("YYYY-MM-dd HH:mm").format(new Date());
+                message.user_id = user.ID;
+                ca.messages.add(message);
+                ca.notifyDataSetChanged();
+                recyclerView.smoothScrollToPosition(ca.getItemCount());
                 new MessageAddAsync().execute(mar);
             });
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -169,7 +182,6 @@ public class ChatActivity extends AppCompatActivity {
                         ChatActivity.this.eventHandler.sendEmptyMessage(1);
                     else {
                         DB.AddMessage(mgr.data);
-                        ChatActivity.this.eventHandler.sendEmptyMessage(0);
                     }
                 } else ChatActivity.this.eventHandler.sendEmptyMessage(2);
 
