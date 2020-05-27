@@ -1,6 +1,7 @@
 package com.example.adamoslogistic.views.ui.orders;
 
 import android.content.Intent;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -9,6 +10,8 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,7 +29,6 @@ import com.example.adamoslogistic.generic.Registry;
 import com.example.adamoslogistic.models.Order;
 import com.example.adamoslogistic.models.Settings;
 import com.example.adamoslogistic.requests.Request;
-import com.example.adamoslogistic.views.DetailedOrderActivity;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -40,12 +42,14 @@ public class OrdersFragment extends Fragment {
     private RecyclerView ordersRecyclerView;
     RecyclerViewAdapter rva;
     private Handler eventHandler;
+    private ImageButton addOrder;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_orders, container, false);
 
         ordersRecyclerView = root.findViewById(R.id.orders);
+        addOrder = root.findViewById(R.id.button_add_order);
 
         DrawOrders();
 
@@ -68,6 +72,13 @@ public class OrdersFragment extends Fragment {
                     break;
             }
             return false;
+        });
+
+        addOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getActivity().getApplicationContext(), AddOrderActivity.class));
+            }
         });
 
         return root;

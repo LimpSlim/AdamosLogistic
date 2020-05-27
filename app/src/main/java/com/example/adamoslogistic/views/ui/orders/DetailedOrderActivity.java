@@ -1,4 +1,4 @@
-package com.example.adamoslogistic.views;
+package com.example.adamoslogistic.views.ui.orders;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +16,7 @@ import com.example.adamoslogistic.R;
 import com.example.adamoslogistic.generic.RecyclerViewAdapter;
 import com.example.adamoslogistic.generic.RecyclerViewAdapterParams;
 import com.example.adamoslogistic.generic.Registry;
+import com.example.adamoslogistic.views.ChatActivity;
 
 public class DetailedOrderActivity extends AppCompatActivity {
 

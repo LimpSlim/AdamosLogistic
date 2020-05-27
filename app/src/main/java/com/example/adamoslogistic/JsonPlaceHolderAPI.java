@@ -1,6 +1,12 @@
 package com.example.adamoslogistic;
 
+import com.example.adamoslogistic.models.AddResponseBodyOrders;
+import com.example.adamoslogistic.models.AllAttributesFromUser;
+import com.example.adamoslogistic.models.ApiKey;
 import com.example.adamoslogistic.models.Order;
+import com.example.adamoslogistic.models.OrderAddInfo;
+import com.example.adamoslogistic.models.Order_id;
+import com.example.adamoslogistic.models.Step;
 import com.example.adamoslogistic.requests.LoginRequest;
 import com.example.adamoslogistic.requests.LoginResponse;
 import com.example.adamoslogistic.requests.MessageAddRequest;
@@ -39,4 +45,24 @@ public interface JsonPlaceHolderAPI {
             @Body MessageAddRequest request
     );
 
+    @POST("process.php?route=order/add/info")
+    Call<List<OrderAddInfo>> addOrderInfo (
+            @Body ApiKey api_key
+    );
+
+    @POST("process.php?route=order/add/step")
+    Call<List<AddResponseBodyOrders>> addStep (
+            @Body Step step
+    );
+
+    @POST("process.php?route=order/attribute/add")
+    Call<Integer> attributeAdd (
+            @Body AllAttributesFromUser allAttributesFromUser
+    );
+
+    @POST("process.php?route=order/add")
+    Call<Order_id> addOrder(
+            //@Body PostAddOrderData addOrderData
+            @Body ApiKey apiKey
+    );
 }
