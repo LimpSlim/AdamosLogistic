@@ -7,7 +7,7 @@ import java.util.List;
 public class Order {
     public String name;
     public Integer order_id;
-    public Date time_created;
+    public String time_created;
     public String timeshort;
     public String status;
 

@@ -4,9 +4,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -22,6 +24,9 @@ import com.example.adamoslogistic.requests.LoginRequest;
 import com.example.adamoslogistic.requests.LoginResponse;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Random;
 
 import retrofit2.Response;
 
@@ -75,7 +80,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         try {
-            if (DB.GetCurrentUser().ID != -1)
+            if (DB.decryptInt(new byte[]{DB.GetCurrentUser().ID.byteValue()}) != -1)
                 eventHandler.sendEmptyMessage(0);
             else {
                 buttonEnter.setOnClickListener(v -> {
@@ -111,16 +116,43 @@ public class LoginActivity extends AppCompatActivity {
                     if (lr.ERROR_ID != null)
                         LoginActivity.this.eventHandler.sendEmptyMessage(1);
                     else {
+                        generateKey();
+                        lr.api_key = Arrays.toString(DB.encryptString(lr.api_key));
+                        lr.name = Arrays.toString(DB.encryptString(lr.name));
+                        lr.id = Integer.parseInt(Arrays.toString(DB.encryptInt(lr.id)));
                         DB.SetCurrentUser(new User(lr.api_key, lr.name, lr.id));
                         LoginActivity.this.eventHandler.sendEmptyMessage(0);
                     }
-                } else LoginActivity.this.eventHandler.sendEmptyMessage(2);
+                } else {
+                    LoginActivity.this.eventHandler.sendEmptyMessage(2);
+                    Log.d("MyLog", response.message() + "\n" + response.errorBody());
+                }
 
             } catch (IOException | InterruptedException e) {
                 LoginActivity.this.eventHandler.sendEmptyMessage(2);
+                Log.d("MyLog", e.toString());
             }
 
             return null;
         }
+    }
+
+    public void generateKey() {
+        int leftLimit = 'a';
+        int rightLimit = 'z';
+        int targetStringLength = 16;
+        Random random = new Random();
+        StringBuilder buffer = new StringBuilder(targetStringLength);
+        for (int i = 0; i < targetStringLength; i++) {
+            int randomLimitedInt = leftLimit + (int)
+                    (random.nextFloat() * (rightLimit - leftLimit + 1));
+            buffer.append((char) randomLimitedInt);
+        }
+        String generatedString = buffer.toString();
+        Log.d("MyLog", generatedString);
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("SecretKey", generatedString);
+        editor.apply();
     }
 }

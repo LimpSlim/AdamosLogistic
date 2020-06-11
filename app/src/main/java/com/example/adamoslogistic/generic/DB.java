@@ -1,22 +1,31 @@
 package com.example.adamoslogistic.generic;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
 import com.example.adamoslogistic.models.Message;
 import com.example.adamoslogistic.models.Order;
+import com.example.adamoslogistic.models.OrderAddInfo;
 import com.example.adamoslogistic.models.OrderAttribute;
 import com.example.adamoslogistic.models.Settings;
 import com.example.adamoslogistic.models.User;
+import com.example.adamoslogistic.views.LoginActivity;
 
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 public final class DB {
 
@@ -28,9 +37,9 @@ public final class DB {
         Registry.DB_Connections.release();
 
         if (result.moveToFirst()) {
-            user.Api_Key = result.getString(result.getColumnIndex("api_key"));
-            user.Name = result.getString(result.getColumnIndex("name"));
-            user.ID = result.getInt(result.getColumnIndex("id"));
+            user.Api_Key = decryptString(result.getString(result.getColumnIndex("api_key")).getBytes());
+            user.Name = decryptString(result.getString(result.getColumnIndex("name")).getBytes());
+            user.ID = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("id"))).getBytes());
         }
 
         return user;
@@ -60,7 +69,7 @@ public final class DB {
 
         Cursor result = Registry.db.rawQuery("SELECT * FROM settings", null);
         if (result.moveToFirst()) {
-            settings.Order_ID = result.getInt(result.getColumnIndex("order_id"));
+            settings.Order_ID = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("order_id"))).getBytes());
         }
 
         Registry.DB_Connections.release();
@@ -102,17 +111,15 @@ public final class DB {
     @SuppressLint("DefaultLocale")
     public static void SetOrdersList(List<Order> orders) throws ParseException, InterruptedException {
         Registry.DB_Connections.acquire();
-        Registry.db.execSQL("DELETE FROM orders;");
+        Registry.db.execSQL("DELETE FROM orders");
         SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm");
 
         for (Order order : orders) {
             List<OrderAttribute> othersAttribute = new ArrayList<>();
 
             for (OrderAttribute attribute : order.ATTRIBUTES) {
-                if (attribute.name.equals("time_created")) {
-                    order.time_created = format.parse(attribute.value);
-                    order.timeshort = attribute.value;
-                } else if (attribute.name.equals("order_status"))
+
+                if (attribute.name.equals("order_status"))
                     order.status = attribute.description;
                 else {
                     othersAttribute.add(attribute);
@@ -215,9 +222,9 @@ public final class DB {
         if (result.moveToFirst()){
             do{
                 Message message = new Message();
-                message.time = result.getString(result.getColumnIndex("time"));
-                message.value = result.getString(result.getColumnIndex("value"));
-                message.user_id = result.getInt(result.getColumnIndex("user_id"));
+                message.time = decryptString(result.getString(result.getColumnIndex("time")).getBytes());
+                message.value = decryptString(result.getString(result.getColumnIndex("value")).getBytes());
+                message.user_id = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("user_id"))).getBytes());
                 response.add(message);
             }while(result.moveToNext());
         }
@@ -239,5 +246,180 @@ public final class DB {
                         data.user_id
                 ));
         Registry.DB_Connections.release();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("DefaultLocale")
+    public static void setOrderInfo(List<OrderAddInfo> info) throws InterruptedException {
+
+        List<String> inserts = new ArrayList<>();
+        Registry.DB_Connections.acquire();
+        Registry.db.execSQL("DELETE FROM order_info");
+        for (OrderAddInfo INFO : info) {
+            inserts.add(
+                    String.format(
+                            "('%s', '%d')",
+                            INFO.getName() == null ? "" : INFO.getName(),
+                            INFO.getNumber()
+                    )
+            );
+            /*Registry.db.execSQL(
+                    String.format(
+                            "DELETE FROM order_info WHERE name = %s",
+                            INFO.getName()
+                            ));
+             */
+        }
+
+        if (inserts.size() != 0) {
+            Registry.db.execSQL(
+                    String.format(
+                            "INSERT INTO order_info (name, number) VALUES %s",
+                            String.join(",", inserts)
+                    ));
+        }
+
+        Registry.DB_Connections.release();
+    }
+
+    public static List<OrderAddInfo> getOrderInfo() throws InterruptedException {
+
+        Registry.DB_Connections.acquire();
+        @SuppressLint("DefaultLocale") Cursor result = Registry.db.rawQuery(
+                String.format(
+                        "SELECT * FROM messages WHERE order_id = '%d'") ,null);
+        Registry.DB_Connections.release();
+
+        List<OrderAddInfo> response = new ArrayList<>();
+        if (result.moveToFirst()){
+            do{
+                OrderAddInfo orderAddInfo = new OrderAddInfo("", 0);
+                orderAddInfo.setName(decryptString(result.getString(result.getColumnIndex("name")).getBytes()));
+                orderAddInfo.setNumber(decryptInt(String.valueOf(result.getInt(result.getColumnIndex("number"))).getBytes()));
+                response.add(orderAddInfo);
+            }while(result.moveToNext());
+        }
+
+        return response;
+    }
+
+    public static byte[] encryptString(String data) {
+        byte[] encrypted = new byte[0];
+        String key = "";
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // encrypt the text
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            encrypted = cipher.doFinal(data.getBytes());
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return encrypted;
+    }
+
+    public static String decryptString(byte[] data) {
+        String decrypted = "";
+        String key = "";
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // decrypt the text
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            decrypted = new String(cipher.doFinal(data));
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return decrypted;
+    }
+
+    public static byte[] encryptInt(int data) {
+        byte[] encrypted = new byte[0];
+        String key = "";
+        String _data = String.valueOf(data);
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // encrypt the text
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            encrypted = cipher.doFinal(_data.getBytes());
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return encrypted;
+    }
+
+    public static int decryptInt(byte[] data) {
+        int decrypted = 0;
+        String str = "";
+        String key = "";
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // decrypt the text
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            str = new String(cipher.doFinal(data));
+            decrypted = Integer.parseInt(str);
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return decrypted;
+    }
+
+    public static byte[] encryptDate(Date data) {
+        byte[] encrypted = new byte[0];
+        String key = "";
+        String _data = String.valueOf(data);
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // encrypt the text
+            cipher.init(Cipher.ENCRYPT_MODE, aesKey);
+            encrypted = cipher.doFinal(_data.getBytes());
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return encrypted;
+    }
+
+    public static Date decryptDate(byte[] data) {
+        Date decrypted = null;
+        String str = "";
+        String key = "";
+        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
+        if(pref.contains("SecretKey"))
+            key = pref.getString("SecretKey", null);
+        try {
+            assert key != null;
+            Key aesKey = new SecretKeySpec(key.getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            // decrypt the text
+            cipher.init(Cipher.DECRYPT_MODE, aesKey);
+            str = new String(cipher.doFinal(data));
+            decrypted = new SimpleDateFormat("dd/MM/yyyy").parse(str);
+        } catch (Exception e) {
+            Log.d("MyTag", e.toString());
+        }
+        return decrypted;
     }
 }

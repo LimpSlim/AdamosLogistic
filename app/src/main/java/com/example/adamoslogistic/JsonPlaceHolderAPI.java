@@ -25,42 +25,42 @@ public interface JsonPlaceHolderAPI {
 
     String HOST = "http://25.99.235.231/";
 
-    @POST("process.php?route=user/login")
+    @POST("adamos/process.php?route=user/login")
     Call<LoginResponse> Login(
             @Body LoginRequest request
     );
 
-    @POST("process.php?route=order/get")
+    @POST("adamos/process.php?route=order/get")
     Call<List<Order>> OrderGet(
             @Body Request request
     );
 
-    @POST("process.php?route=message/get")
+    @POST("adamos/process.php?route=message/get")
     Call<MessageGetResponse> MessageGet(
             @Body MessageGetRequest request
     );
 
-    @POST("process.php?route=message/add")
+    @POST("adamos/process.php?route=message/add")
     Call<MessageAddResponse> MessageAdd(
             @Body MessageAddRequest request
     );
 
-    @POST("process.php?route=order/add/info")
+    @POST("adamos/process.php?route=order/add/info")
     Call<List<OrderAddInfo>> addOrderInfo (
             @Body ApiKey api_key
     );
 
-    @POST("process.php?route=order/add/step")
+    @POST("adamos/process.php?route=order/add/step")
     Call<List<AddResponseBodyOrders>> addStep (
             @Body Step step
     );
 
-    @POST("process.php?route=order/attribute/add")
+    @POST("adamos/process.php?route=order/attribute/add")
     Call<Integer> attributeAdd (
             @Body AllAttributesFromUser allAttributesFromUser
     );
 
-    @POST("process.php?route=order/add")
+    @POST("adamos/process.php?route=order/add")
     Call<Order_id> addOrder(
             //@Body PostAddOrderData addOrderData
             @Body ApiKey apiKey

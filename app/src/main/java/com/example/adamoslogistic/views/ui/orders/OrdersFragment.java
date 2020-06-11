@@ -129,6 +129,13 @@ public class OrdersFragment extends Fragment {
                 Response<List<Order>> response = call.execute();
                 if (response.isSuccessful()) {
                     List<Order> orders = response.body();
+                    for (Order order: orders) {
+                        order.name = DB.encryptString(order.name).toString();
+                        order.order_id = Integer.parseInt(String.valueOf(DB.encryptInt(order.order_id)));
+                        order.time_created = DB.encryptString(order.time_created).toString();
+                        order.timeshort = DB.encryptString(order.timeshort).toString();
+                        order.status = DB.encryptString(order.status).toString();
+                    }
                     DB.SetOrdersList(orders);
                     OrdersFragment.this.eventHandler.sendEmptyMessage(0);
                 } else OrdersFragment.this.eventHandler.sendEmptyMessage(1);

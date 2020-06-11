@@ -1,11 +1,14 @@
 package com.example.adamoslogistic.views.ui.orders;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.content.Context;
-import android.content.Intent;
+
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -20,6 +23,7 @@ import com.example.adamoslogistic.JsonPlaceHolderAPI;
 import com.example.adamoslogistic.R;
 import com.example.adamoslogistic.adapters.ForNewOrder;
 import com.example.adamoslogistic.generic.DB;
+import com.example.adamoslogistic.generic.Registry;
 import com.example.adamoslogistic.models.AddResponseBodyOrders;
 import com.example.adamoslogistic.models.AllAttributesFromUser;
 import com.example.adamoslogistic.models.ApiKey;
@@ -29,6 +33,8 @@ import com.example.adamoslogistic.models.Order_id;
 import com.example.adamoslogistic.models.Step;
 import com.example.adamoslogistic.models.Values;
 
+import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +46,118 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class AddOrderActivity extends AppCompatActivity {
 
-    private String api_key = "";
+    private JsonPlaceHolderAPI JsonPlaceHolderAPI;
+    private Order_id order_id;
+    private Handler eventHandler;
+    private String api_key = DB.GetCurrentUser().Api_Key;
+    private int i = 0;
+
+    public AddOrderActivity() throws InterruptedException {
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_add_order);
+
+        eventHandler = new Handler(msg -> {
+            switch (msg.what) {
+                case 0:
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+
+                    break;
+                case 4:
+                    Toast.makeText(AddOrderActivity.this, "Ошибка создания заказа", Toast.LENGTH_LONG)
+                            .show();
+                    break;
+            }
+            return false;
+        });
+    }
+
+    class addOrderAsync extends AsyncTask <ApiKey, Void, Void> {
+        @Override
+        protected Void doInBackground(ApiKey... params) {
+            JsonPlaceHolderAPI = Registry.retrofit.create(JsonPlaceHolderAPI.class);
+            Call<Order_id> call = JsonPlaceHolderAPI.addOrder(params[0]);
+
+            try {
+                Response<Order_id> response = call.execute();
+                if (response.isSuccessful()) {
+                    order_id = response.body();
+                    AddOrderActivity.this.eventHandler.sendEmptyMessage(0);
+                } else AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            } catch (Exception e) {
+                AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            }
+            return null;
+        }
+    }
+
+    class addOrderInfoAsync extends AsyncTask <ApiKey, Void, Void> {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        protected Void doInBackground(ApiKey... params) {
+            JsonPlaceHolderAPI = Registry.retrofit.create(JsonPlaceHolderAPI.class);
+            Call<List<OrderAddInfo>> call = JsonPlaceHolderAPI.addOrderInfo(params[0]);
+
+            try {
+                Response<List<OrderAddInfo>> response = call.execute();
+                if (response.isSuccessful()) {
+                    List<OrderAddInfo> info = response.body();
+                    DB.setOrderInfo(info);
+                    AddOrderActivity.this.eventHandler.sendEmptyMessage(1);
+                }
+                else AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            } catch (Exception e) {
+                AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            }
+            return null;
+        }
+    }
+
+    class addOrderStepAsync extends AsyncTask <Step, Void, Void> {
+        @Override
+        protected Void doInBackground(Step... params) {
+            JsonPlaceHolderAPI = Registry.retrofit.create(JsonPlaceHolderAPI.class);
+            Call<List<AddResponseBodyOrders>> call = JsonPlaceHolderAPI.addStep(params[0]);
+
+            try {
+                Response<List<AddResponseBodyOrders>> response = call.execute();
+                if (response.isSuccessful()) {
+                    List<AddResponseBodyOrders> addResponseBodyOrders = response.body();
+                    AddOrderActivity.this.eventHandler.sendEmptyMessage(2);
+                } else AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            } catch (Exception e) {
+                AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            }
+            return null;
+        }
+    }
+
+    class fromUserAsync extends AsyncTask <AllAttributesFromUser, Void, Void> {
+        @Override
+        protected Void doInBackground(AllAttributesFromUser... params) {
+            JsonPlaceHolderAPI = Registry.retrofit.create(JsonPlaceHolderAPI.class);
+            Call<Integer> call = JsonPlaceHolderAPI.attributeAdd(params[0]);
+
+            try {
+                Response<Integer> response = call.execute();
+                if (response.isSuccessful()) {
+                    AddOrderActivity.this.eventHandler.sendEmptyMessage(3);
+                } else AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            } catch (Exception e) {
+                AddOrderActivity.this.eventHandler.sendEmptyMessage(4);
+            }
+            return null;
+        }
+    }
+    /*private String api_key = "";
     private String value = "";
     private Order_id orderId;
     private List<OrderAddInfo> info;
@@ -49,7 +166,6 @@ public class AddOrderActivity extends AppCompatActivity {
     private List<AttributesFromUser> ATTRIBUTES = new ArrayList<>();
     private int i = 0;
     private int pos = 0;
-    View root;
     TextView step, category_name;
     Button next, back;
 
@@ -306,6 +422,8 @@ public class AddOrderActivity extends AppCompatActivity {
             Log.d("MyLog", "ОШИБКА: вывалилось в catch");
         }
     }
+
+     */
 
     private void returnToOrdersFragment() {
         finish();

@@ -4,14 +4,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.example.adamoslogistic.R;
 import com.example.adamoslogistic.generic.DB;
 import com.example.adamoslogistic.models.User;
 import com.example.adamoslogistic.views.LoginActivity;
