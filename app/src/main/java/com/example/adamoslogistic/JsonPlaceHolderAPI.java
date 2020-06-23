@@ -23,7 +23,7 @@ import retrofit2.http.POST;
 
 public interface JsonPlaceHolderAPI {
 
-    String HOST = "http://25.99.235.231/";
+    String HOST = "http://192.168.43.202/adamos/";
 
     @POST("adamos/process.php?route=user/login")
     Call<LoginResponse> Login(

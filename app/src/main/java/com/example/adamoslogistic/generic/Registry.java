@@ -16,7 +16,6 @@ public final class Registry {
 
     public static SQLiteDatabase db;
     public static final Semaphore DB_Connections = new Semaphore(1, true);
-    public static Context baseContext;
 
     public static Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(JsonPlaceHolderAPI.HOST)
@@ -27,8 +26,10 @@ public final class Registry {
         Registry.db = BaseContext.openOrCreateDatabase("app.db", MODE_PRIVATE, null);
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS cur_user (name TEXT, api_key TEXT, id INTEGER)");
 
+        //Registry.db.execSQL("DROP TABLE settings");
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS settings (order_id INTEGER)");
 
+        //Registry.db.execSQL("DROP TABLE orders");
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS orders (" +
                 "name TEXT, time_created DATETIME, id INTEGER, status TEXT, timeshort TEXT)");
 
@@ -37,7 +38,5 @@ public final class Registry {
 
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS messages(" +
                 "order_id INTEGER, value TEXT, time TEXT, user_id INTEGER)");
-
-        Registry.db.execSQL("CREATE TABLE IF NOT EXISTS order_info (name TEXT, number INTEGER)");
     }
 }
