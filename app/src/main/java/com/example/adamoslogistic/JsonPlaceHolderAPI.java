@@ -13,14 +13,13 @@ import com.example.adamoslogistic.requests.MessageAddRequest;
 import com.example.adamoslogistic.requests.MessageAddResponse;
 import com.example.adamoslogistic.requests.MessageGetResponse;
 import com.example.adamoslogistic.requests.MessageGetRequest;
-import com.example.adamoslogistic.requests.Request;
+import com.example.adamoslogistic.requests.OrderGetRequest;
+import com.example.adamoslogistic.requests.OrderGetResponse;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
 public interface JsonPlaceHolderAPI {
@@ -32,9 +31,9 @@ public interface JsonPlaceHolderAPI {
             @Body LoginRequest request
     );
 
-    @POST("adamos/process.php?route=order/get")
-    Call<List<Order>> OrderGet(
-            @Body Request request
+    @POST("order/process.php")
+    Call<OrderGetResponse> OrderGet(
+            @Body OrderGetRequest request
     );
 
     @POST("adamos/process.php?route=message/get")

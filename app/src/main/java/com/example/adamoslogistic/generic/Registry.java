@@ -31,7 +31,7 @@ public final class Registry {
 
         //Registry.db.execSQL("DROP TABLE orders");
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS orders (" +
-                "name TEXT, time_created DATETIME, id INTEGER, status TEXT, timeshort TEXT)");
+                "title TEXT, time_start DATETIME, id INTEGER)");
 
         Registry.db.execSQL("CREATE TABLE IF NOT EXISTS attribute_orders (" +
                 "order_id INTEGER, name TEXT, value TEXT, description TEXT, attribute_description TEXT, type INTEGER)");

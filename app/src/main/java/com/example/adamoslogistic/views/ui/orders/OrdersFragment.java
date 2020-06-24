@@ -1,16 +1,15 @@
 package com.example.adamoslogistic.views.ui.orders;
 
 import android.content.Intent;
-import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -28,6 +27,8 @@ import com.example.adamoslogistic.generic.RecyclerViewAdapterParams;
 import com.example.adamoslogistic.generic.Registry;
 import com.example.adamoslogistic.models.Order;
 import com.example.adamoslogistic.models.Settings;
+import com.example.adamoslogistic.requests.OrderGetRequest;
+import com.example.adamoslogistic.requests.OrderGetResponse;
 import com.example.adamoslogistic.requests.Request;
 
 import java.io.IOException;
@@ -54,9 +55,10 @@ public class OrdersFragment extends Fragment {
         DrawOrders();
 
         try {
-            Request r = new Request();
-            r.api_key = DB.GetCurrentUser().Api_Key;
-            new OrderGetAsync().execute(r);
+            OrderGetRequest ogr = new OrderGetRequest("get", new Request());
+            ogr.params.api_key = DB.GetCurrentUser().Api_Key;
+            Log.d("ApiKey", DB.GetCurrentUser().Api_Key);
+            new OrderGetAsync().execute(ogr);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -86,14 +88,14 @@ public class OrdersFragment extends Fragment {
 
     private void DrawOrders() {
         RecyclerViewAdapterParams rvap = new RecyclerViewAdapterParams(
-                new Pair<>("name", R.id.textView_order_name),
-                new Pair<>("timeshort", R.id.textView_order_time_created),
-                new Pair<>("status", R.id.textView_order_status)
+                new Pair<>("title", R.id.textView_order_name),
+                new Pair<>("time_start", R.id.textView_order_time_created),
+                new Pair<>("id", R.id.textView_order_status)
         );
 
         rvap.layoutID = R.layout.order_item;
         rvap.context = getContext();
-        rvap.query = "SELECT name, timeshort, status, id FROM orders ORDER BY time_created DESC";
+        rvap.query = "SELECT title, time_start, id FROM orders ORDER BY time_start DESC";
 
         try {
             rva = new RecyclerViewAdapter(rvap, new RecyclerViewAdapter.OnItemListener() {
@@ -115,21 +117,21 @@ public class OrdersFragment extends Fragment {
         }
     }
 
-    class OrderGetAsync extends AsyncTask<Request, Void, Void> {
+    class OrderGetAsync extends AsyncTask<OrderGetRequest, Void, Void> {
 
         private JsonPlaceHolderAPI JsonPlaceHolderAPI;
 
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
-        protected Void doInBackground(Request... params) {
+        protected Void doInBackground(OrderGetRequest... params) {
             JsonPlaceHolderAPI = Registry.retrofit.create(JsonPlaceHolderAPI.class);
-            Call<List<Order>> call = JsonPlaceHolderAPI.OrderGet(params[0]);
+            Call<OrderGetResponse> call = JsonPlaceHolderAPI.OrderGet(params[0]);
 
             try {
-                Response<List<Order>> response = call.execute();
+                Response<OrderGetResponse> response = call.execute();
                 if (response.isSuccessful()) {
-                    List<Order> orders = response.body();
-                    DB.SetOrdersList(orders);
+                    OrderGetResponse orders = response.body();
+                    DB.SetOrdersList(orders.result);
                     OrdersFragment.this.eventHandler.sendEmptyMessage(0);
                 } else OrdersFragment.this.eventHandler.sendEmptyMessage(1);
             } catch (ParseException | InterruptedException | IOException e) {

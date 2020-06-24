@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
-import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +19,6 @@ import com.example.adamoslogistic.models.User;
 
 public class UserFragment extends Fragment {
 
-    private LruCache<String, Bitmap> memoryCache;
-
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_user, container, false);
@@ -31,15 +28,6 @@ public class UserFragment extends Fragment {
         ImageView photo = root.findViewById(R.id.photo);
         try {
             User curUser = DB.GetCurrentUser();
-            /*if (avatar.type == "url") {
-                Picasso.get().load(avatar.avatar).into(photo);
-                bitmap = ((BitmapDrawable) photo.getDrawable()).getBitmap();
-                Log.d("MyLog", bitmap.toString());
-                DB.SetAvatar(bitmap.toString());
-            }
-            else {
-                photo.setImageBitmap(BitmapFactory.decodeFile(avatar.avatar));
-            }*/
             Log.d("MyLog", DB.GetAvatar());
             photo.setImageBitmap(decodeBase64(DB.GetAvatar()));
             name.setText(curUser.Name);

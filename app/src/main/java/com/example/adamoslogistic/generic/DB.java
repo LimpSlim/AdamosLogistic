@@ -14,7 +14,10 @@ import com.example.adamoslogistic.models.OrderAddInfo;
 import com.example.adamoslogistic.models.OrderAttribute;
 import com.example.adamoslogistic.models.Settings;
 import com.example.adamoslogistic.models.User;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 import java.text.ParseException;
@@ -144,65 +147,60 @@ public final class DB {
     public static void SetOrdersList(List<Order> orders) throws ParseException, InterruptedException {
         Registry.DB_Connections.acquire();
         Registry.db.execSQL("DELETE FROM orders");
-        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm");
+        SimpleDateFormat format = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
 
         for (Order order : orders) {
             List<OrderAttribute> othersAttribute = new ArrayList<>();
 
-            for (OrderAttribute attribute : order.ATTRIBUTES) {
-
-                if (attribute.name.equals("order_status"))
-                    order.status = attribute.description;
-                else {
-                    othersAttribute.add(attribute);
-                }
-            }
-
             Registry.db.execSQL(
                     String.format(
-                            "INSERT INTO orders (id, name, time_created, status, timeshort) VALUES ('%d', '%s', '%s', '%s', '%s')",
-                            order.order_id,
-                            order.name == null ? "" : order.name,
-                            order.time_created == null ? (format.format(new Date())) : order.time_created.toString(),
-                            order.status == null ? "" : order.status,
-                            order.timeshort == null ? "" : order.timeshort
+                            "INSERT INTO orders (id, title, time_start) VALUES ('%d', '%s', '%s')",
+                            order.id,
+                            order.title == null ? "" : order.title,
+                            order.time_start == null ? (format.format(new Date())) : order.time_start.toString()
                     )
             );
-
-            List<String> inserts = new ArrayList<>();
-            for (OrderAttribute attribute : othersAttribute) {
-                inserts.add(
-                        String.format(
-                                "('%d', '%s', '%s', '%s', '%s', '%d')",
-                                order.order_id,
-                                attribute.name == null ? "" : attribute.name,
-                                attribute.value == null ? "" : attribute.value,
-                                attribute.attribute_description == null ? "" : attribute.attribute_description,
-                                attribute.description == null ? "" : attribute.description,
-                                attribute.type
-                        )
-                );
-            }
-
-            Registry.db.execSQL(
-                    String.format(
-                            "DELETE FROM attribute_orders WHERE order_id=%d",
-                            order.order_id
-                    )
-            );
-            if (inserts.size() != 0) {
-                Registry.db.execSQL(
-                        String.format(
-                                "INSERT INTO attribute_orders (order_id, name, value, " +
-                                        "attribute_description, description, type) VALUES %s ",
-                                String.join(",", inserts)
-                        )
-                );
-            }
         }
 
         Registry.DB_Connections.release();
+        /*SharedPreferences ordersList = Registry.baseContext.getSharedPreferences("orders", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = ordersList.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(orders);
+        editor.putString("orders", json);
+        editor.apply();*/
     }
+
+    /*public static List<Order> GetOrdersList() throws InterruptedException {
+        Settings settings = new Settings();
+        Registry.DB_Connections.acquire();
+
+        Cursor result = Registry.db.rawQuery("SELECT * FROM settings", null);
+        if (result.moveToFirst()) {
+            settings.Order_ID = result.getInt(result.getColumnIndex("order_id"));
+        }
+
+        Registry.DB_Connections.release();
+
+        return settings;
+
+        /*List<Order> orders = new ArrayList<>();
+
+        try {
+            SharedPreferences ordersList = Registry.baseContext.getSharedPreferences("orders", Context.MODE_PRIVATE);
+            Gson gson = new Gson();
+            String json = ordersList.getString("orders", null);
+            Type type = new TypeToken<ArrayList<Order>>() {}.getType();
+            orders = gson.fromJson(json, type);
+
+            if (orders == null) {
+                orders = new ArrayList<>();
+            }
+        }catch (Exception e) {
+
+        }
+        return orders;
+    }*/
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("DefaultLocale")

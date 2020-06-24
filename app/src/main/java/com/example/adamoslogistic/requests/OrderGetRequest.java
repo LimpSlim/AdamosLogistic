@@ -1,11 +1,11 @@
 package com.example.adamoslogistic.requests;
 
-public class LoginRequest {
+public class OrderGetRequest {
 
     public String method;
-    public Params params;
+    public Request params;
 
-    public LoginRequest(String method, Params params) {
+    public OrderGetRequest(String method, Request params) {
         this.method = method;
         this.params = params;
     }
