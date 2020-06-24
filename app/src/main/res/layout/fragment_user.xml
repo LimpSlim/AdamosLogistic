@@ -47,4 +47,5 @@
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/item_attributeName" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

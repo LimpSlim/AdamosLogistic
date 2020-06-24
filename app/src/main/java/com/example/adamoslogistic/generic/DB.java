@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -15,39 +14,49 @@ import com.example.adamoslogistic.models.OrderAddInfo;
 import com.example.adamoslogistic.models.OrderAttribute;
 import com.example.adamoslogistic.models.Settings;
 import com.example.adamoslogistic.models.User;
-import com.example.adamoslogistic.views.LoginActivity;
 
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
-
 public final class DB {
 
     public static User GetCurrentUser() throws InterruptedException {
         User user = new User();
 
-        Registry.DB_Connections.acquire();
+        /*Registry.DB_Connections.acquire();
         Cursor result = Registry.db.rawQuery("SELECT * FROM cur_user", null);
         Registry.DB_Connections.release();
 
         if (result.moveToFirst()) {
-            user.Api_Key = decryptString(result.getString(result.getColumnIndex("api_key")).getBytes());
-            user.Name = decryptString(result.getString(result.getColumnIndex("name")).getBytes());
-            user.ID = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("id"))).getBytes());
+            user.Api_Key = result.getString(result.getColumnIndex("api_key"));
+            user.Name = result.getString(result.getColumnIndex("name"));
+            user.ID = result.getInt(result.getColumnIndex("id"));
         }
 
-        return user;
+        return user;*/
+        try {
+            SharedPreferences curUser = Registry.baseContext.getSharedPreferences("user", Context.MODE_PRIVATE);
+            if(curUser.contains("id"))
+                user.ID = curUser.getInt("id", 0);
+
+            if(curUser.contains("api_key"))
+                user.Api_Key = curUser.getString("api_key", null);
+
+            if(curUser.contains("name"))
+                user.Name = curUser.getString("name", null);
+
+            return user;
+        }catch (Exception e) {
+            return new User("", "", -1);
+        }
     }
 
     @SuppressLint("DefaultLocale")
     public static void SetCurrentUser(User user) throws InterruptedException {
-        user.Name = user.Name == null ? "" : user.Name;
+       /* user.Name = user.Name == null ? "" : user.Name;
         user.Api_Key = user.Api_Key == null ? "" : user.Api_Key;
 
         Registry.DB_Connections.acquire();
@@ -60,27 +69,45 @@ public final class DB {
                         user.ID
                 )
         );
-        Registry.DB_Connections.release();
+        Registry.DB_Connections.release();*/
+        SharedPreferences curUser = Registry.baseContext.getSharedPreferences("user", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = curUser.edit();
+        editor.putInt("id", user.ID);
+        editor.putString("api_key", user.Api_Key);
+        editor.putString("name", user.Name);
+        editor.apply();
     }
 
     public static Settings GetCurrentSettings() throws InterruptedException {
-        Settings settings = new Settings();
+        /*Settings settings = new Settings();
         Registry.DB_Connections.acquire();
 
         Cursor result = Registry.db.rawQuery("SELECT * FROM settings", null);
         if (result.moveToFirst()) {
-            settings.Order_ID = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("order_id"))).getBytes());
+            settings.Order_ID = result.getInt(result.getColumnIndex("order_id"));
         }
 
         Registry.DB_Connections.release();
 
-        return settings;
+        return settings;*/
+
+        Settings settings = new Settings();
+
+        try {
+            SharedPreferences Settings = Registry.baseContext.getSharedPreferences("settings", Context.MODE_PRIVATE);
+            if(Settings.contains("order_id"))
+                settings.Order_ID = Settings.getInt("order_id", 0);
+
+            return settings;
+        }catch (Exception e) {
+            return new Settings(0);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("DefaultLocale")
     public static void SetCurrentSettings(Settings settings) throws InterruptedException {
-        String query;
+        /*String query;
         if (GetCurrentSettings().Order_ID == 0) {
             query = String.format(
                     "INSERT INTO settings (order_id) VALUES ('%d')",
@@ -104,7 +131,12 @@ public final class DB {
 
         Registry.DB_Connections.acquire();
         Registry.db.execSQL(query);
-        Registry.DB_Connections.release();
+        Registry.DB_Connections.release();*/
+
+        SharedPreferences Settings = Registry.baseContext.getSharedPreferences("settings", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = Settings.edit();
+        editor.putInt("order_id", settings.Order_ID);
+        editor.apply();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -222,9 +254,9 @@ public final class DB {
         if (result.moveToFirst()){
             do{
                 Message message = new Message();
-                message.time = decryptString(result.getString(result.getColumnIndex("time")).getBytes());
-                message.value = decryptString(result.getString(result.getColumnIndex("value")).getBytes());
-                message.user_id = decryptInt(String.valueOf(result.getInt(result.getColumnIndex("user_id"))).getBytes());
+                message.time = result.getString(result.getColumnIndex("time"));
+                message.value = result.getString(result.getColumnIndex("value"));
+                message.user_id = result.getInt(result.getColumnIndex("user_id"));
                 response.add(message);
             }while(result.moveToNext());
         }
@@ -294,8 +326,8 @@ public final class DB {
         if (result.moveToFirst()){
             do{
                 OrderAddInfo orderAddInfo = new OrderAddInfo("", 0);
-                orderAddInfo.setName(decryptString(result.getString(result.getColumnIndex("name")).getBytes()));
-                orderAddInfo.setNumber(decryptInt(String.valueOf(result.getInt(result.getColumnIndex("number"))).getBytes()));
+                orderAddInfo.setName(result.getString(result.getColumnIndex("name")));
+                orderAddInfo.setNumber(result.getInt(result.getColumnIndex("number")));
                 response.add(orderAddInfo);
             }while(result.moveToNext());
         }
@@ -303,7 +335,7 @@ public final class DB {
         return response;
     }
 
-    public static byte[] encryptString(String data) {
+    /*public static byte[] encryptString(String data) {
         byte[] encrypted = new byte[0];
         String key = "";
         SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", Context.MODE_PRIVATE);
@@ -421,5 +453,26 @@ public final class DB {
             Log.d("MyTag", e.toString());
         }
         return decrypted;
+    }*/
+
+    public static String GetAvatar() throws InterruptedException {
+        String str = "";
+        try {
+            SharedPreferences avatar = Registry.baseContext.getSharedPreferences("avatar", Context.MODE_PRIVATE);
+
+            if(avatar.contains("avatar"))
+                str = avatar.getString("avatar", null);
+
+        }catch (Exception e) {
+
+        }
+        return str;
+    }
+
+    public static void SetAvatar(String ava) throws InterruptedException {
+        SharedPreferences avatar = Registry.baseContext.getSharedPreferences("avatar", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = avatar.edit();
+        editor.putString("avatar", ava);
+        editor.apply();
     }
 }

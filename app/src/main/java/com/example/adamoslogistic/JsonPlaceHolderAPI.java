@@ -19,13 +19,15 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
 public interface JsonPlaceHolderAPI {
 
-    String HOST = "http://192.168.43.202/adamos/";
+    String HOST = "https://kittco.ru/adamos/";
 
-    @POST("adamos/process.php?route=user/login")
+    @POST("auth/process.php")
     Call<LoginResponse> Login(
             @Body LoginRequest request
     );

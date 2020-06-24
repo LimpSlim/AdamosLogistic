@@ -16,7 +16,7 @@ public final class Registry {
 
     public static SQLiteDatabase db;
     public static final Semaphore DB_Connections = new Semaphore(1, true);
-
+    public static Context baseContext;
     public static Retrofit retrofit = new Retrofit.Builder()
             .baseUrl(JsonPlaceHolderAPI.HOST)
             .addConverterFactory(GsonConverterFactory.create())

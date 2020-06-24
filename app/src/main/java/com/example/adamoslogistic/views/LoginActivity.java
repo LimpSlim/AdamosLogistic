@@ -4,10 +4,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -20,13 +22,15 @@ import com.example.adamoslogistic.R;
 import com.example.adamoslogistic.generic.DB;
 import com.example.adamoslogistic.generic.Registry;
 import com.example.adamoslogistic.models.User;
+import com.example.adamoslogistic.requests.Params;
 import com.example.adamoslogistic.requests.LoginRequest;
 import com.example.adamoslogistic.requests.LoginResponse;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Random;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import retrofit2.Response;
 
@@ -44,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         Registry.InitDB(getBaseContext());
+        Registry.baseContext = getBaseContext();
 
         buttonEnter = findViewById(R.id.button_enter);
         buttonRegistration = findViewById(R.id.button_register);
@@ -80,15 +85,15 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         try {
-            if (DB.decryptInt(new byte[]{DB.GetCurrentUser().ID.byteValue()}) != -1)
+            if (DB.GetCurrentUser().ID != -1)
                 eventHandler.sendEmptyMessage(0);
             else {
                 buttonEnter.setOnClickListener(v -> {
                     progressBar.setVisibility(ProgressBar.VISIBLE);
 
-                    LoginRequest lr = new LoginRequest(
-                            editTextEmail.getText().toString(),
+                    Params params = new Params(editTextEmail.getText().toString(),
                             editTextPassword.getText().toString());
+                    LoginRequest lr = new LoginRequest("login", params);
 
                     new LoginAsync().execute(lr);
                 });
@@ -96,6 +101,31 @@ public class LoginActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Bitmap getBitmapFromURL(String src) {
+        try {
+            URL url = new URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            // Log exception
+            return null;
+        }
+    }
+
+    public static String encodeTobase64(Bitmap image) {
+        Bitmap immage = image;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        immage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+        String imageEncoded = Base64.encodeToString(b, Base64.DEFAULT);
+        Log.d("Image Log:", imageEncoded);
+        return imageEncoded;
     }
 
     class LoginAsync extends AsyncTask<LoginRequest, Void, Void> {
@@ -112,15 +142,14 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (response.isSuccessful()) {
                     LoginResponse lr = response.body();
+                    Log.d("Test", lr.length);
 
                     if (lr.ERROR_ID != null)
                         LoginActivity.this.eventHandler.sendEmptyMessage(1);
                     else {
-                        generateKey();
-                        lr.api_key = Arrays.toString(DB.encryptString(lr.api_key));
-                        lr.name = Arrays.toString(DB.encryptString(lr.name));
-                        lr.id = Integer.parseInt(Arrays.toString(DB.encryptInt(lr.id)));
-                        DB.SetCurrentUser(new User(lr.api_key, lr.name, lr.id));
+                        DB.SetCurrentUser(new User(lr.result.api_key, "", 1));
+                        DB.SetAvatar(encodeTobase64(getBitmapFromURL(lr.result.avatar)));
+                        Log.d("MyLog", encodeTobase64(getBitmapFromURL(lr.result.avatar)));
                         LoginActivity.this.eventHandler.sendEmptyMessage(0);
                     }
                 } else {
@@ -135,24 +164,5 @@ public class LoginActivity extends AppCompatActivity {
 
             return null;
         }
-    }
-
-    public void generateKey() {
-        int leftLimit = 'a';
-        int rightLimit = 'z';
-        int targetStringLength = 16;
-        Random random = new Random();
-        StringBuilder buffer = new StringBuilder(targetStringLength);
-        for (int i = 0; i < targetStringLength; i++) {
-            int randomLimitedInt = leftLimit + (int)
-                    (random.nextFloat() * (rightLimit - leftLimit + 1));
-            buffer.append((char) randomLimitedInt);
-        }
-        String generatedString = buffer.toString();
-        Log.d("MyLog", generatedString);
-        SharedPreferences pref = Registry.baseContext.getSharedPreferences("SecretKey", 0);
-        SharedPreferences.Editor editor = pref.edit();
-        editor.putString("SecretKey", generatedString);
-        editor.apply();
     }
 }
